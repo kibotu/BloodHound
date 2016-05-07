@@ -55,6 +55,7 @@ public class BloodHound {
     // region init
 
     private BloodHound(@NonNull final Application context, @NonNull final String trackingId) {
+        BloodHound.instance = this;
         this.context = context;
         analytics = GoogleAnalytics.getInstance(context);
         tracker = analytics.newTracker(trackingId);
@@ -64,8 +65,9 @@ public class BloodHound {
     }
 
     public static BloodHound with(@NonNull final Application context, @NonNull final String trackingId) {
-        BloodHound.instance = new BloodHound(context, trackingId);
-        return BloodHound.instance;
+        return instance != null
+                ? instance
+                : new BloodHound(context, trackingId);
     }
 
     public static BloodHound with(@NonNull final Application context, @StringRes final int trackingId) {
