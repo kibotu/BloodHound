@@ -188,12 +188,14 @@ public class BloodHound {
 
             @Override
             public void onActivityResumed(Activity activity) {
-
+                if (!getInstance().enableAutoActivityTracking)
+                    getInstance().reportActivityStart(activity);
             }
 
             @Override
             public void onActivityPaused(Activity activity) {
-
+                if (!getInstance().enableAutoActivityTracking)
+                    getInstance().reportActivityStop(activity);
             }
 
             @Override
