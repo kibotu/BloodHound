@@ -34,7 +34,7 @@ public class BloodHound {
     private static BloodHound instance;
 
     @NonNull
-    private final Activity context;
+    private final Application context;
 
     private Tracker tracker;
     private GoogleAnalytics analytics;
@@ -54,25 +54,26 @@ public class BloodHound {
 
     // region init
 
-    private BloodHound(@NonNull final Activity context, @NonNull final String trackingId) {
+    private BloodHound(@NonNull final Application context, @NonNull final String trackingId) {
         this.context = context;
         analytics = GoogleAnalytics.getInstance(context);
-        analytics.newTracker(trackingId);
+        tracker = analytics.newTracker(trackingId);
         currentScreen = "";
         init();
         log("[init] with " + trackingId);
     }
 
-    public static BloodHound with(@NonNull final Activity context, @NonNull final String trackingId) {
+    public static BloodHound with(@NonNull final Application context, @NonNull final String trackingId) {
         BloodHound.instance = new BloodHound(context, trackingId);
         return BloodHound.instance;
     }
 
-    public static BloodHound with(@NonNull final Activity context, @StringRes final int trackingId) {
+    public static BloodHound with(@NonNull final Application context, @StringRes final int trackingId) {
         return with(context, getString(trackingId));
     }
 
     private void init() {
+        context.registerActivityLifecycleCallbacks(createActivityLifeCycleCallbacks());
 
         enableLogging(enableDebugging);
 
@@ -172,14 +173,53 @@ public class BloodHound {
 
     // region tracking activity start and stop
 
-    public static void reportActivityStart(@NonNull final Activity activity) {
+    private void reportActivityStart(@NonNull final Activity activity) {
         if (!getInstance().enableAutoActivityTracking)
             track(getApplicationName(activity));
     }
 
-    public static void reportActivityStop(@NonNull final Activity activity) {
+    private void reportActivityStop(@NonNull final Activity activity) {
         if (!getInstance().enableAutoActivityTracking)
             GoogleAnalytics.getInstance(activity).reportActivityStop(activity);
+    }
+
+    private static Application.ActivityLifecycleCallbacks createActivityLifeCycleCallbacks() {
+        return new Application.ActivityLifecycleCallbacks() {
+
+            @Override
+            public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+            }
+
+            @Override
+            public void onActivityStarted(Activity activity) {
+                if (!getInstance().enableAutoActivityTracking)
+                    getInstance().reportActivityStart(activity);
+            }
+
+            @Override
+            public void onActivityResumed(Activity activity) {
+            }
+
+            @Override
+            public void onActivityPaused(Activity activity) {
+            }
+
+            @Override
+            public void onActivityStopped(Activity activity) {
+                if (!getInstance().enableAutoActivityTracking)
+                    getInstance().reportActivityStop(activity);
+            }
+
+            @Override
+            public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+
+            }
+
+            @Override
+            public void onActivityDestroyed(Activity activity) {
+
+            }
+        };
     }
 
     // endregion
