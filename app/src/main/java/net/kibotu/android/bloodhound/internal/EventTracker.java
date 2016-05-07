@@ -1,50 +1,53 @@
-package net.kibotu.android.easygoogleanalyticstracking;
+package net.kibotu.android.bloodhound.internal;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
+import com.google.android.gms.analytics.ecommerce.Product;
+import com.google.android.gms.analytics.ecommerce.ProductAction;
 
 import java.util.Arrays;
 
-public final class TimingTracker {
+public final class EventTracker {
+
     private final Tracker tracker;
     @NonNull
-    private final HitBuilders.TimingBuilder builder;
+    private final HitBuilders.EventBuilder builder;
 
     private String screenName;
     private Dimension[] dimensions;
 
-    public TimingTracker(final Tracker tracker) {
+    private EventTracker(final Tracker tracker) {
         this.tracker = tracker;
-        this.builder = new HitBuilders.TimingBuilder();
+        this.builder = new HitBuilders.EventBuilder();
     }
 
     @NonNull
-    public static TimingTracker from(final Tracker tracker) {
-        return new TimingTracker(tracker);
+    public static EventTracker from(final Tracker tracker) {
+        return new EventTracker(tracker);
     }
 
     @NonNull
-    public TimingTracker screenName(final String screenName) {
+    public EventTracker screenName(final String screenName) {
         this.screenName = screenName;
         return this;
     }
 
     @NonNull
-    public TimingTracker category(final String category) {
+    public EventTracker category(final String category) {
         builder.setCategory(category);
         return this;
     }
 
     @NonNull
-    public TimingTracker variable(final String variable) {
-        builder.setVariable(variable);
+    public EventTracker action(final String action) {
+        builder.setAction(action);
         return this;
     }
 
     @NonNull
-    public TimingTracker label(@Nullable final String label) {
+    public EventTracker label(@Nullable final String label) {
         if (label != null) {
             builder.setLabel(label);
         }
@@ -52,13 +55,25 @@ public final class TimingTracker {
     }
 
     @NonNull
-    public TimingTracker value(final long timeInMillis) {
-        builder.setValue(timeInMillis);
+    public EventTracker value(final long value) {
+        builder.setValue(value);
         return this;
     }
 
     @NonNull
-    public TimingTracker customDimension(final Dimension dimension) {
+    public EventTracker addProduct(final Product product) {
+        builder.addProduct(product);
+        return this;
+    }
+
+    @NonNull
+    public EventTracker productAction(final ProductAction productAction) {
+        builder.setProductAction(productAction);
+        return this;
+    }
+
+    @NonNull
+    public EventTracker customDimension(final Dimension dimension) {
         if (dimensions == null) {
             dimensions = new Dimension[1];
             dimensions[0] = dimension;
@@ -78,5 +93,9 @@ public final class TimingTracker {
         tracker.setScreenName(screenName);
         tracker.send(builder.build());
         tracker.setScreenName(null);
+    }
+
+    public void setNewSession() {
+        builder.setNewSession();
     }
 }

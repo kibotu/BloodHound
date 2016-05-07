@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="net.kibotu.android.easygoogleanalyticstracking">
+          package="net.kibotu.android.bloodhound">
 
     <application>
         <meta-data

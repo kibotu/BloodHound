@@ -1,4 +1,4 @@
-package net.kibotu.android.easygoogleanalyticstracking;
+package net.kibotu.android.bloodhound.internal;
 
 import android.support.annotation.NonNull;
 import com.google.android.gms.analytics.HitBuilders;

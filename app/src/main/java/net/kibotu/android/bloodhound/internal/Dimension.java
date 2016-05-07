@@ -1,4 +1,4 @@
-package net.kibotu.android.easygoogleanalyticstracking;
+package net.kibotu.android.bloodhound.internal;
 
 public final class Dimension {
 
