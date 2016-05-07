@@ -46,3 +46,7 @@ Tiny library for tracking screens and events with google analytics.
             .enableLogging(true)
             .enableDryRun(false)
             .setSessionLimit(500);
+            
+            
+    BloodHound.reportActivityStart(activity);
+    BloodHound.reportActivityStop(activity);
