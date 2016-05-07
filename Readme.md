@@ -1,4 +1,7 @@
-[![](https://jitpack.io/v/kibotu/EasyGoogleAnalyticsTracking.svg)](https://jitpack.io/#kibotu/EasyGoogleAnalyticsTracking) [![Build Status](https://travis-ci.org/kibotu/EasyGoogleAnalyticsTracking.svg)](https://travis-ci.org/kibotu/EasyGoogleAnalyticsTracking)  [![API](https://img.shields.io/badge/API-15%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=15)
+BloodHoud [![](https://jitpack.io/v/kibotu/BloodHound.svg)](https://jitpack.io/#kibotu/BloodHound) [![Build Status](https://travis-ci.org/kibotu/BloodHound.svg)](https://travis-ci.org/kibotu/BloodHound)  [![API](https://img.shields.io/badge/API-15%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=15)
+----------------------
+
+Tiny library for tracking screens and events with google analytics.
 
 ### How to install
 	
@@ -9,7 +12,7 @@
 	}
 		
 	dependencies {
-            compile 'com.github.kibotu:EasyGoogleAnalyticsTracking:-SNAPSHOT'
+            compile 'com.github.kibotu:BloodHound:-SNAPSHOT'
     }
     
 ### How to use
