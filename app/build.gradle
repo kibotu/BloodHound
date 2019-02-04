@@ -1,16 +1,23 @@
+ext {
+    isCi = true
+}
+
 apply plugin: 'com.android.application'
-apply plugin: 'me.tatarka.retrolambda'
-apply plugin: 'android-apt'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion "24.0.3"
+
+    compileSdkVersion compileSdkVer
+    buildToolsVersion buildToolsVer
+
     defaultConfig {
-        applicationId "net.kibotu.android.bloodhound"
-        minSdkVersion 15
-        targetSdkVersion 24
-        versionCode 1
-        versionName "1.0"
+        applicationId "net.kibotu.bloodhound"
+        minSdkVersion minSdkVer
+        targetSdkVersion targetSdkVer
+        versionCode commitCount()
+        versionName simpleReleaseVersionName()
     }
 
     buildTypes {
@@ -30,24 +37,46 @@ android {
         }
     }
 
-    dexOptions {
-        preDexLibraries = false
-        jumboMode = false
-        javaMaxHeapSize "2g"
-        maxProcessCount 4
-    }
+    // region compile options
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    // endregion
+
+    // region lint options
+
     lintOptions {
-        checkReleaseBuilds false
-        abortOnError false
-        ignoreWarnings true
         disable 'InvalidPackage'
+        abortOnError false        // true by default
+        checkAllWarnings false
+        checkReleaseBuilds false
+        ignoreWarnings true       // false by default
+        quiet true                // false by default
     }
+
+    // endregion
+
+    // region dex options
+
+    dexOptions {
+        javaMaxHeapSize "4g"
+        maxProcessCount 8
+    }
+
+    // endregion
+
+    // region adb options
+
+    adbOptions {
+        timeOutInMs 10 * 60 * 1000 // 10 minutes
+    }
+
+    // endregion
+
+    // region exclude duplicated meta inf files
 
     packagingOptions {
         exclude 'META-INF/maven/com.google.guava/guava/pom.properties'
@@ -58,24 +87,30 @@ android {
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/NOTICE.txt'
         exclude 'META-INF/ASL2.0'
-        exclude 'META-INF/services/javax.annotation.processing.Processor'  // butterknife
+        exclude 'META-INF/services/javax.annotation.processing.Processor'
         exclude 'META-INF/NOTICE'
         exclude 'META-INF/notice.txt'
         exclude 'META-INF/license.txt'
         exclude 'META-INF/dependencies.txt'
         exclude 'META-INF/LGPL2.1'
+        exclude 'META-INF/rxjava.properties'
+        exclude 'META-INF/app_debug.kotlin_module'
     }
+
+    // endregion
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile project(':lib')
-    compile 'com.android.support:appcompat-v7:24.2.1'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(':lib')
+    implementation libs.kotlinJdk8
+    implementation libs.supportAppCompat
 }
 
-retrolambda {
-    jvmArgs '-noverify'
-    defaultMethods false
-    incremental true
+// region kapt
+
+kapt {
+    useBuildCache = true
 }
 
+// endregion

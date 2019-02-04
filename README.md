@@ -1,5 +1,5 @@
 [![Donation](https://img.shields.io/badge/donate-please-brightgreen.svg)](https://www.paypal.me/janrabe) [![About Jan Rabe](https://img.shields.io/badge/about-me-green.svg)](https://about.me/janrabe) 
-# BloodHoud [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-BloodHound-green.svg?style=true)](https://android-arsenal.com/details/1/3559) [![](https://jitpack.io/v/kibotu/BloodHound.svg)](https://jitpack.io/#kibotu/BloodHound)  [![Javadoc](https://img.shields.io/badge/javadoc-SNAPSHOT-green.svg)](https://jitpack.io/com/github/kibotu/BloodHound/master-SNAPSHOT/javadoc/index.html) [![Build Status](https://travis-ci.org/kibotu/BloodHound.svg)](https://travis-ci.org/kibotu/BloodHound)  [![API](https://img.shields.io/badge/API-15%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=15) [![API](https://img.shields.io/badge/com.google.android.gms-9.6.1-brightgreen.svg)](https://developers.google.com/android/guides/setup) [![Gradle Version](https://img.shields.io/badge/gradle-3.1-green.svg)](https://docs.gradle.org/current/release-notes) [![GitHub license](https://img.shields.io/badge/license-Apache%202-blue.svg)](https://raw.githubusercontent.com/kibotu/BloodHound/master/LICENSE)
+# BloodHoud [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-BloodHound-green.svg?style=true)](https://android-arsenal.com/details/1/3559) [![](https://jitpack.io/v/kibotu/BloodHound.svg)](https://jitpack.io/#kibotu/BloodHound)  [![Javadoc](https://img.shields.io/badge/javadoc-SNAPSHOT-green.svg)](https://jitpack.io/com/github/kibotu/BloodHound/master-SNAPSHOT/javadoc/index.html) [![Build Status](https://travis-ci.org/kibotu/BloodHound.svg)](https://travis-ci.org/kibotu/BloodHound)  [![API](https://img.shields.io/badge/API-15%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=15) [![API](https://img.shields.io/badge/com.google.android.gms-16.0.0-brightgreen.svg)](https://developers.google.com/android/guides/setup) [![Gradle Version](https://img.shields.io/badge/gradle-5.1.1-green.svg)](https://docs.gradle.org/current/release-notes) [![GitHub license](https://img.shields.io/badge/license-Apache%202-blue.svg)](https://raw.githubusercontent.com/kibotu/BloodHound/master/LICENSE) [![Kotlin](https://img.shields.io/badge/kotlin-1.3.20-green.svg)](https://github.com/JetBrains/kotlin) [![Android Studio Canary](https://img.shields.io/badge/Android%20Studio%20Canary-latest-green.svg)](https://developer.android.com/studio/preview/)
 
 Tiny library for tracking screens and events with google analytics.
 
@@ -12,7 +12,7 @@ Tiny library for tracking screens and events with google analytics.
 	}
 		
 	dependencies {
-            compile 'com.github.kibotu:BloodHound:-SNAPSHOT'
+            implement 'com.github.kibotu:BloodHound:-SNAPSHOT'
     }
     
 ### How to use
@@ -20,36 +20,39 @@ Tiny library for tracking screens and events with google analytics.
 1. Initialize
     
         BloodHound.with(context, "trackingId")
-                .enableDryRun(BuildConfig.DEBUG)
-                .enableLogging(BuildConfig.DEBUG);
     
 2. Track Screens
 
-        BloodHound.track("screen");
+        BloodHound.track("screen")
         
         
 3. Track Events
- 
- 
-        BloodHound.track("screen", "category", "action", "label");
-    
+
+        BloodHound.track("main_screen", "category", "action", "app_start",
+                mapOf("user" to UUID.randomUUID().toString())) // (optional) additional params
+
+4. (optional) Reset client
+
+    	BloodHound.deleteGoogleAnalyticsClientSideData()
+
     
 ### Options (defaults)
     
-    BloodHound.with(context, "trackingId")
-            .enableExceptionReporting(false)
-            .enableAdvertisingIdCollection(true)
-            .enableAutoActivityTracking(false)
-            .setSessionTimeout(300)
-            .setSampleRate(100)
-            .setLocalDispatchPeriod(300)
-            .enableLogging(true)
-            .enableDryRun(false)
-            .setSessionLimit(500);
+    BloodHound.with(this, "trackingId", TrackingOptions(
+        enableDebugging = BuildConfig.DEBUG,
+        exceptionReporting = false,
+        advertisingIdCollection = true,
+        autoActivityTracking = false,
+        sessionTimeout = 300,
+        sampleRate = 100.0,
+        sessionLimit = 500,
+        dryRun = false,
+        anonymizeIp = true
+    ))
             
-###License
+### License
 <pre>
-Copyright 2016 Jan Rabe
+Copyright 2019 Jan Rabe
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

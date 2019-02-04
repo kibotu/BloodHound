@@ -1,26 +1,27 @@
+ext {
+    isCi = true
+}
+
 apply plugin: 'com.android.library'
-apply plugin: 'me.tatarka.retrolambda'
-apply plugin: 'android-apt'
-apply plugin: 'com.getkeepsafe.dexcount'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.getkeepsafe.dexcount'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion "24.0.3"
+
+    compileSdkVersion compileSdkVer
+    buildToolsVersion buildToolsVer
 
     defaultConfig {
-        minSdkVersion 15
-        targetSdkVersion 24
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion minSdkVer
+        targetSdkVersion targetSdkVer
+        versionCode commitCount()
+        versionName simpleReleaseVersionName()
 
-        buildConfigField "String", "SIMPLE_VERSION_NAME", escape(simpleReleaseVersionName())
-        buildConfigField "String", "CANONICAL_VERSION_NAME", escape(canonicalReleaseVersionName())
-        buildConfigField "String", "COMMIT_HASH", escape(commitHash())
-        buildConfigField "String", "BRANCH", escape(branchNameByGit())
-        buildConfigField "String", "BUILD_DATE", escape(new Date().getTime())
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments clearPackageData: 'true'
     }
 
     buildTypes {
@@ -33,7 +34,7 @@ android {
         release {
             debuggable false
             minifyEnabled true
-            shrinkResources = true
+            shrinkResources = false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             proguardFile 'proguard-net.kibotu.pro'
             proguardFile 'proguard-retrolambda.pro'
@@ -41,24 +42,65 @@ android {
         }
     }
 
-    dexOptions {
-        preDexLibraries = false
-        jumboMode = false
-        javaMaxHeapSize "2g"
-        maxProcessCount 4
-    }
+    // region compile options
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    // endregion
+
+    // region lint options
+
     lintOptions {
-        checkReleaseBuilds false
-        abortOnError false
-        ignoreWarnings true
         disable 'InvalidPackage'
+        abortOnError false        // true by default
+        checkAllWarnings false
+        checkReleaseBuilds false
+        ignoreWarnings true       // false by default
+        quiet true                // false by default
     }
+
+    // endregion
+
+    // region dex options
+
+    dexOptions {
+        javaMaxHeapSize "4g"
+        maxProcessCount 8
+    }
+
+    // endregion
+
+    // region test options
+
+    testOptions {
+        execution 'ANDROIDX_TEST_ORCHESTRATOR'
+        unitTests.all {
+            jvmArgs '-noverify'
+            testLogging {
+                events "passed", "skipped", "failed", "standardOut", "standardError"
+                outputs.upToDateWhen { false }
+                showStandardStreams = true
+            }
+            ignoreFailures = true
+        }
+        unitTests.returnDefaultValues = true
+        unitTests.includeAndroidResources = true
+    }
+
+    // endregion
+
+    // region adb options
+
+    adbOptions {
+        timeOutInMs 10 * 60 * 1000 // 10 minutes
+    }
+
+    // endregion
+
+    // region exclude duplicated meta inf files
 
     packagingOptions {
         exclude 'META-INF/maven/com.google.guava/guava/pom.properties'
@@ -69,49 +111,27 @@ android {
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/NOTICE.txt'
         exclude 'META-INF/ASL2.0'
-        exclude 'META-INF/services/javax.annotation.processing.Processor'  // butterknife
+        exclude 'META-INF/services/javax.annotation.processing.Processor'
         exclude 'META-INF/NOTICE'
         exclude 'META-INF/notice.txt'
         exclude 'META-INF/license.txt'
         exclude 'META-INF/dependencies.txt'
         exclude 'META-INF/LGPL2.1'
+        exclude 'META-INF/rxjava.properties'
+        exclude 'META-INF/app_debug.kotlin_module'
     }
 
-    testOptions {
-        unitTests.all {
-            jvmArgs '-noverify'
-        }
-        unitTests.returnDefaultValues = true
-    }
-}
-
-project.android.libraryVariants.all { variant ->
-    variant.outputs.each { output ->
-        variant.buildConfigField "boolean", "ALPHA", variant.getName() == "alpha" ? "true" : "false"
-        variant.buildConfigField "boolean", "RELEASE", variant.getName() == "release" ? "true" : "false"
-    }
+    // endregion
 }
 
 // region dependencies
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
-
-    compile 'com.android.support:support-annotations:24.2.1'
-    compile 'com.google.android.gms:play-services-gcm:9.6.1'
-    compile 'com.google.android.gms:play-services-ads:9.6.1'
-    compile 'com.google.android.gms:play-services-analytics:9.6.1'
-}
-
-// endregion
-
-// region retrolambda
-
-retrolambda {
-    jvmArgs '-noverify'
-    defaultMethods false
-    incremental true
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation libs.kotlinJdk8
+    implementation libs.supportAppCompat
+    implementation libs.playServicesGcm
+    implementation libs.playServicesAnalytics
 }
 
 // endregion
@@ -119,6 +139,7 @@ retrolambda {
 // region javadoc
 
 // build a jar with source files
+
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
@@ -144,213 +165,30 @@ artifacts {
 
 // endregion
 
+// region kapt
+
+kapt {
+    useBuildCache = true
+}
+
+// endregion
+
 // region dexcount
 
 dexcount {
     format = "list"
     includeClasses = false
+    includeClassCount = false
     includeFieldCount = true
     includeTotalMethodCount = false
     orderByMethodCount = false
-    verbose = true
+    verbose = false
     maxTreeDepth = Integer.MAX_VALUE
     teamCityIntegration = false
-    enableForInstantRun = false
     teamCitySlug = null
+    runOnEachPackage = true
+    maxMethodCount = 64000
+    enabled = true
 }
 
 // endregion
-
-// region settings
-
-// https://github.com/android/platform_packages_apps_settings/blob/master/AndroidManifest.xml
-//noinspection GroovyAssignabilityCheck
-task settings() << {
-    description = "adb shell am start -a android.settings.SETTINGS"
-    println(description)
-    final def stdout = new ByteArrayOutputStream()
-    exec {
-        executable android.getAdbExe().toString()
-        args = ['shell', 'am', 'start', '-a', 'android.settings.SETTINGS']
-        standardOutput = stdout;
-    }
-    final def result = stdout.toString().trim();
-
-    println(result)
-}
-
-//noinspection GroovyAssignabilityCheck
-task devSettings() << {
-    description = "adb shell am start -n com.android.settings/.DevelopmentSettings"
-    println(description)
-    final def stdout = new ByteArrayOutputStream()
-    exec {
-        executable android.getAdbExe().toString()
-        args = ['shell', 'am', 'start', '-n', 'com.android.settings/.DevelopmentSettings']
-        standardOutput = stdout;
-    }
-    final def result = stdout.toString().trim();
-    println(result)
-}
-
-// endregion
-
-// region versioning
-
-//noinspection GroovyAssignabilityCheck
-task printCommitCount() << {
-    commitCount()
-}
-
-//noinspection GroovyAssignabilityCheck
-task printBranchname() << {
-    branchName()
-}
-
-//noinspection GroovyAssignabilityCheck
-task printGitLog() << {
-    gitLog()
-}
-
-def gitLog() {
-    description = "git log --pretty=format:\"%h %s\""
-    println(description)
-    final def stdout = new ByteArrayOutputStream()
-    exec {
-        commandLine 'git', 'log', "--pretty=format:\"%h %s\""
-        standardOutput = stdout
-    }
-
-    return stdout.toString().trim();
-}
-
-def commitHash() {
-    description = "git log -n 1 --format='%h'"
-    println(description)
-    final def stdout = new ByteArrayOutputStream()
-    exec {
-        commandLine 'git', 'log', '-n', '1', "--format='%h'"
-        standardOutput = stdout
-    }
-    println("Git Hash" + stdout.toString())
-    return stdout.toString().trim().replaceAll('\'', '')
-}
-
-def commitCount() {
-    final def stdout = new ByteArrayOutputStream()
-    description = "git rev-list --full-history --all"
-    println(description)
-    exec {
-        commandLine 'git', 'rev-list', '--full-history', '--all'
-        standardOutput = stdout
-    }
-    final String output = stdout.toString();
-    final List<String> commits = output.split("\n");
-    println("Version Code: " + commits.size())
-    return commits.size();
-}
-
-def simpleReleaseVersionName() {
-    description = "Creating release version name. Format: major.minor.build"
-    println(description)
-
-    final def buildNumber = buildNumberByCI()
-    def releaseName = branchName()
-    // remove 'origin' in from branch name
-    if (releaseName != null && releaseName.contains("origin/"))
-        releaseName = releaseName.replace("origin/", "");
-
-    if (releaseName.contains("release"))
-        releaseName = releaseName.replace("release/", "");
-
-    if (buildNumber != null)
-        releaseName += "." + buildNumber
-    else
-        releaseName += "." + 0
-
-    println("Version Name: " + releaseName)
-    return releaseName
-}
-
-def canonicalReleaseVersionName() {
-    description = "Creating release version name. Format: branch/major.minor.build-commithash"
-    println(description)
-    final def buildNumber = buildNumberByCI()
-    def releaseName = branchName()
-
-    // remove 'origin' in from branch name
-    if (releaseName != null && releaseName.contains("origin/"))
-        releaseName = releaseName.replace("origin/", "");
-
-    if (!releaseName.contains("release"))
-        releaseName += "/0.0"
-
-    if (buildNumber != null) {
-        releaseName += "." + buildNumber + "-"
-    } else {
-        releaseName += ".0-"
-    }
-
-    releaseName += commitHash()
-    println("Version Name: " + releaseName)
-    return releaseName
-}
-
-def buildNumberByCI() {
-    description = "Getting build number from Jenkins or Travis."
-    println(description)
-    final def env = System.getenv()
-    if (env.BITRISE_BUILD_NUMBER != null)
-        return Integer.parseInt(env.BITRISE_BUILD_NUMBER)
-    if (env.BUILD_NUMBER != null)
-        return Integer.parseInt(env.BUILD_NUMBER)
-    if (env.TRAVIS_BUILD_NUMBER != null)
-        return Integer.parseInt(env.TRAVIS_BUILD_NUMBER)
-    return 0;
-}
-
-def branchName() {
-    description = "Getting branch name from Jenkins or Travis or from git directly."
-    println(description)
-    def branchName = branchNameByCI()
-    if (branchName == null)
-        branchName = branchNameByGit()
-    return branchName;
-}
-
-def branchNameByCI() {
-    description = "Getting build number from Jenkins or Travis."
-    println(description)
-    final def env = System.getenv()
-    if (env.BITRISE_GIT_BRANCH != null)
-        return env.BITRISE_GIT_BRANCH;
-    if (env.GIT_BRANCH != null)
-        return env.GIT_BRANCH
-    if (env.TRAVIS_BRANCH != null)
-        return env.TRAVIS_BRANCH
-    return null
-}
-
-def branchNameByGit() {
-    final def stdout = new ByteArrayOutputStream()
-    description = "git rev-parse --abbrev-ref HEAD"
-    println(description)
-    exec {
-        commandLine 'git', 'rev-parse', '--abbrev-ref', 'HEAD'
-        standardOutput = stdout
-    }
-    final String output = stdout.toString().trim();
-    println("Branch Name: " + output)
-    return output;
-}
-
-// endregion
-
-// region misc
-
-def escape(Object value) {
-    return "\"" + value + "\""
-}
-
-// endregion
-
