@@ -2,10 +2,11 @@
  * Created by [Jan Rabe](https://about.me/janrabe)
  */
 
-package net.kibotu.bloodhound
+package net.kibotu.bloodhound.internal.gms
 
-data class TrackingOptions(
+data class GoogleAnalyitcsOptions(
         var enableDebugging: Boolean = true,
+        var enableLogging: Boolean = true,
         var exceptionReporting: Boolean = false,
         var advertisingIdCollection: Boolean = true,
         var autoActivityTracking: Boolean = false,

@@ -1,7 +1,7 @@
 [![Donation](https://img.shields.io/badge/donate-please-brightgreen.svg)](https://www.paypal.me/janrabe) [![About Jan Rabe](https://img.shields.io/badge/about-me-green.svg)](https://about.me/janrabe) 
-# BloodHoud [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-BloodHound-green.svg?style=true)](https://android-arsenal.com/details/1/3559) [![](https://jitpack.io/v/kibotu/BloodHound.svg)](https://jitpack.io/#kibotu/BloodHound)  [![Javadoc](https://img.shields.io/badge/javadoc-SNAPSHOT-green.svg)](https://jitpack.io/com/github/kibotu/BloodHound/master-SNAPSHOT/javadoc/index.html) [![Build Status](https://travis-ci.org/kibotu/BloodHound.svg)](https://travis-ci.org/kibotu/BloodHound)  [![API](https://img.shields.io/badge/API-15%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=15) [![API](https://img.shields.io/badge/com.google.android.gms-16.0.0-brightgreen.svg)](https://developers.google.com/android/guides/setup) [![Gradle Version](https://img.shields.io/badge/gradle-5.1.1-green.svg)](https://docs.gradle.org/current/release-notes) [![GitHub license](https://img.shields.io/badge/license-Apache%202-blue.svg)](https://raw.githubusercontent.com/kibotu/BloodHound/master/LICENSE) [![Kotlin](https://img.shields.io/badge/kotlin-1.3.20-green.svg)](https://github.com/JetBrains/kotlin) [![Android Studio Canary](https://img.shields.io/badge/Android%20Studio%20Canary-latest-green.svg)](https://developer.android.com/studio/preview/)
+# BloodHoud [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-BloodHound-green.svg?style=true)](https://android-arsenal.com/details/1/3559) [![](https://jitpack.io/v/kibotu/BloodHound.svg)](https://jitpack.io/#kibotu/BloodHound)  [![Javadoc](https://img.shields.io/badge/javadoc-SNAPSHOT-green.svg)](https://jitpack.io/com/github/kibotu/BloodHound/master-SNAPSHOT/javadoc/index.html) [![Build Status](https://travis-ci.org/kibotu/BloodHound.svg)](https://travis-ci.org/kibotu/BloodHound)  [![API](https://img.shields.io/badge/API-15%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=15) [![API](https://img.shields.io/badge/com.google.android.gms-16.0.0-brightgreen.svg)](https://developers.google.com/android/guides/setup) [![API](https://img.shields.io/badge/com.google.firebase-16.0.6-brightgreen.svg)](https://firebase.google.com/docs/analytics/android/start) [![Gradle Version](https://img.shields.io/badge/gradle-5.1.1-green.svg)](https://docs.gradle.org/current/release-notes) [![GitHub license](https://img.shields.io/badge/license-Apache%202-blue.svg)](https://raw.githubusercontent.com/kibotu/BloodHound/master/LICENSE) [![Kotlin](https://img.shields.io/badge/kotlin-1.3.20-green.svg)](https://github.com/JetBrains/kotlin) [![Android Studio Canary](https://img.shields.io/badge/Android%20Studio%20Canary-latest-green.svg)](https://developer.android.com/studio/preview/)
 
-Tiny library for tracking screens and events with google analytics.
+Tiny library for tracking screens and events with google analytics and / or firebase analytics.
 
 ### How to install
 	
@@ -13,33 +13,63 @@ Tiny library for tracking screens and events with google analytics.
 		
 	dependencies {
             implement 'com.github.kibotu:BloodHound:-SNAPSHOT'
+
+            // for google analytics
+            implement "com.google.android.gms:play-services-gcm:16.0.0"
+            implement "com.google.android.gms:play-services-analytics:16.0.6"
+
+            // for firebase
+            implement "com.google.firebase:firebase-core:16.0.6"
     }
-    
+
 ### How to use
+
+#### Google Analytics
 
 1. Initialize
     
         BloodHound.with(context, "trackingId")
-    
+
 2. Track Screens
 
         BloodHound.track("screen")
-        
-        
+
 3. Track Events
 
-        BloodHound.track("main_screen", "category", "action", "app_start",
-                mapOf("user" to UUID.randomUUID().toString())) // (optional) additional params
+       BloodHound.track("main_screen", "category", "action", "app_start",
+            mapOf("user" to UUID.randomUUID().toString()) // (optional) parameters
+       )
 
 4. (optional) Reset client
 
-    	BloodHound.deleteGoogleAnalyticsClientSideData()
+    	BloodHound.reset()
+
+### Firebase
+
+1. Initialize
+
+        BloodHound.with(context)
+
+2. Track Screens
+
+        BloodHound.track("screen")
+
+3. Track Events
+
+        BloodHound.track("main_screen", "user_event",
+            mapOf("user" to UUID.randomUUID().toString()) // (optional) parameters
+        )
+
+4. (optional) Reset client
+
+    	BloodHound.reset()
 
     
-### Options (defaults)
+### GoogleAnalyitcsOptions (defaults)
     
-    BloodHound.with(this, "trackingId", TrackingOptions(
+    BloodHound.with(this, "trackingId", GoogleAnalyitcsOptions(
         enableDebugging = BuildConfig.DEBUG,
+        enableLogging = BuildConfig.DEBUG,
         exceptionReporting = false,
         advertisingIdCollection = true,
         autoActivityTracking = false,
@@ -48,6 +78,13 @@ Tiny library for tracking screens and events with google analytics.
         sessionLimit = 500,
         dryRun = false,
         anonymizeIp = true
+    ))
+
+### FirebaseOptions (defaults)
+
+    BloodHound.with(this, FirebaseOptions(
+        enableDebugging = BuildConfig.DEBUG,
+        enableLogging = BuildConfig.DEBUG
     ))
             
 ### License

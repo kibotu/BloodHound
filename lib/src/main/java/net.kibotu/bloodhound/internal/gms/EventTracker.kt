@@ -2,7 +2,11 @@
  * Created by [Jan Rabe](https://about.me/janrabe)
  */
 
-package net.kibotu.bloodhound.internal
+/*
+ * Created by [Jan Rabe](https://about.me/janrabe)
+ */
+
+package net.kibotu.bloodhound.internal.gms
 
 import com.google.android.gms.analytics.HitBuilders
 import com.google.android.gms.analytics.Tracker
@@ -22,25 +26,23 @@ internal class EventTracker(private val tracker: Tracker) {
         return this
     }
 
-    fun category(category: String): EventTracker {
-        builder.setCategory(category)
+    fun category(category: String?): EventTracker {
+        builder.setCategory(category ?: return this)
         return this
     }
 
-    fun action(action: String): EventTracker {
-        builder.setAction(action)
+    fun action(action: String?): EventTracker {
+        builder.setAction(action ?: return this)
         return this
     }
 
     fun label(label: String?): EventTracker {
-        if (label != null) {
-            builder.setLabel(label)
-        }
+        builder.setLabel(label ?: return this)
         return this
     }
 
-    fun value(value: Long): EventTracker {
-        builder.setValue(value)
+    fun value(value: Long?): EventTracker {
+        builder.setValue(value ?: return this)
         return this
     }
 
@@ -49,18 +51,18 @@ internal class EventTracker(private val tracker: Tracker) {
         return this
     }
 
-    fun addProduct(product: Product): EventTracker {
-        builder.addProduct(product)
+    fun addProduct(product: Product?): EventTracker {
+        builder.addProduct(product ?: return this)
         return this
     }
 
-    fun productAction(productAction: ProductAction): EventTracker {
-        builder.setProductAction(productAction)
+    fun productAction(productAction: ProductAction?): EventTracker {
+        builder.setProductAction(productAction ?: return this)
         return this
     }
 
-    fun customDimension(dimension: Dimension): EventTracker {
-        dimensions.add(dimension)
+    fun customDimension(dimension: Dimension?): EventTracker {
+        dimensions.add(dimension ?: return this)
         return this
     }
 

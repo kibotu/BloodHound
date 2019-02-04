@@ -9,15 +9,13 @@ import android.app.Application
 import android.os.Bundle
 import android.util.Log
 import androidx.annotation.RequiresPermission
-import com.google.android.gms.analytics.GoogleAnalytics
-import com.google.android.gms.analytics.Logger.LogLevel.ERROR
-import com.google.android.gms.analytics.Logger.LogLevel.VERBOSE
-import com.google.android.gms.analytics.Tracker
-import net.kibotu.bloodhound.internal.EventTracker
-import net.kibotu.bloodhound.internal.ScreenTracker
-import net.kibotu.bloodhound.internal.TimingTracker
+import androidx.annotation.Size
+import androidx.appcompat.app.AppCompatActivity
+import net.kibotu.bloodhound.internal.firebase.FirebaseAnalyticsTracker
+import net.kibotu.bloodhound.internal.firebase.FirebaseOptions
+import net.kibotu.bloodhound.internal.gms.GoogleAnalyitcsOptions
+import net.kibotu.bloodhound.internal.gms.GoogleAnalyticsTracker
 import java.lang.ref.WeakReference
-import java.util.*
 
 object BloodHound {
 
@@ -25,165 +23,108 @@ object BloodHound {
 
     private var _application: WeakReference<Application>? = null
 
-    private var context: Application?
+    internal var context: Application?
         get() = _application?.get()
         set(value) {
             _application = WeakReference(value!!)
         }
 
-    private lateinit var tracker: Tracker
+    private var _activity: WeakReference<Activity>? = null
 
-    private lateinit var analytics: GoogleAnalytics
-
-    private var sessionCounter: Int = 0
-
-    private var currentScreen: String = ""
-
-    // region settings
-
-    private var dryRun: Boolean = false
-        set(value) = analytics.setDryRun(value)
-
-    private var exceptionReporting: Boolean = false
-        set(value) = tracker.enableExceptionReporting(value)
-
-    private var advertisingIdCollection: Boolean = true
-        set(value) = tracker.enableAdvertisingIdCollection(value)
-
-    private var enableAutoActivityTracking: Boolean = false
-
-    private var autoActivityTracking: Boolean = true
+    internal var activity: Activity?
+        get() = _activity?.get()
         set(value) {
-            tracker.enableAutoActivityTracking(value)
-            enableAutoActivityTracking = value
+            _activity = WeakReference(value!!)
         }
-
-    private var sessionTimeout: Long = 300
-        set(value) = tracker.setSessionTimeout(value)
-
-    private var sampleRate: Double = 100.0
-        set(value) = tracker.setSampleRate(value)
-
-    private var localDispatchPeriod: Int = 500
-        set(value) = analytics.setLocalDispatchPeriod(value)
-
-    private var sessionLimit: Int = 0
-
-    private var anonymizeIp: Boolean = true
-        set(value) = tracker.setAnonymizeIp(value)
 
     private var enableDebugging: Boolean = false
-        set(value) {
-            field = value
-            analytics.logger.logLevel = if (value)
-                VERBOSE
-            else
-                ERROR
-        }
+
+    private var googleAnalyticsTracker: GoogleAnalyticsTracker? = null
+
+    private var firebaseAnalyticsTracker: FirebaseAnalyticsTracker? = null
 
     // endregion
-
-    // region vars
 
     @RequiresPermission(allOf = ["android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE"])
-    fun with(context: Application, trackingId: String, options: TrackingOptions? = null) {
+    fun withGoogleAnalytics(context: Application, trackingId: String, options: GoogleAnalyitcsOptions? = null) {
         this.context = context
-        analytics = GoogleAnalytics.getInstance(context)
-        tracker = analytics.newTracker(trackingId)
-        currentScreen = ""
-        configure(options)
-        log("[init] with $trackingId")
+        context.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
+        googleAnalyticsTracker = GoogleAnalyticsTracker.create(context, trackingId, options)
+        enableDebugging = options?.enableDebugging == true
+        log("[withGoogleAnalytics] with $trackingId")
     }
 
-    // endregion
-
-    private fun configure(options: TrackingOptions?) {
-        context!!.registerActivityLifecycleCallbacks(createActivityLifeCycleCallbacks())
-
-        options?.let {
-            enableDebugging = it.enableDebugging
-            exceptionReporting = it.exceptionReporting
-            advertisingIdCollection = it.advertisingIdCollection
-            autoActivityTracking = it.autoActivityTracking
-            sessionTimeout = it.sessionTimeout
-            sampleRate = it.sampleRate
-            sessionLimit = it.sessionLimit
-            dryRun = it.dryRun
-            anonymizeIp = it.anonymizeIp
-        }
-
-        localDispatchPeriod = if (enableDebugging)
-            15
-        else
-            300
-
-        with(tracker) {
-            setAppVersion("${context!!.versionName} (${context!!.versionCode})")
-            setAppName(context!!.packageName)
-            setLanguage(Locale.getDefault().displayLanguage)
-        }
+    @RequiresPermission(allOf = ["android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE", "android.permission.WAKE_LOCK"])
+    fun withFirebase(context: Application, options: FirebaseOptions? = null) {
+        this.context = context
+        context.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
+        firebaseAnalyticsTracker = FirebaseAnalyticsTracker.create(context, options)
+        enableDebugging = options?.enableDebugging == true
+        log("[withFirebase]")
     }
 
-    // endregion
+    // region activity tracker
 
-    // region tracking activity start and stop
+    private val activityLifecycleCallbacks: Application.ActivityLifecycleCallbacks by lazy {
+        object : Application.ActivityLifecycleCallbacks {
 
-    private fun reportActivityStart(activity: Activity) {
-        if (!enableAutoActivityTracking)
-            track(activity.ApplicationName)
-    }
+            override fun onActivityPaused(activity: Activity?) {
+            }
 
-    private fun reportActivityStop(activity: Activity) {
-        if (!enableAutoActivityTracking)
-            GoogleAnalytics.getInstance(activity).reportActivityStop(activity)
-    }
+            override fun onActivityResumed(activity: Activity?) {
+            }
 
-    // region helper
+            override fun onActivityStarted(activity: Activity?) {
+                if (activity !is AppCompatActivity)
+                    return
 
-    private fun log(message: String?) {
-        if (enableDebugging)
-            Log.v(TAG, message)
-    }
+                BloodHound.activity = activity
+                googleAnalyticsTracker?.reportActivityStart(activity)
+                firebaseAnalyticsTracker?.reportActivityStart(activity)
+            }
 
-    private fun createActivityLifeCycleCallbacks(): Application.ActivityLifecycleCallbacks = object : Application.ActivityLifecycleCallbacks {
+            override fun onActivityDestroyed(activity: Activity?) {
+            }
 
-        override fun onActivityPaused(activity: Activity?) {
-        }
+            override fun onActivitySaveInstanceState(activity: Activity?, outState: Bundle?) {
+            }
 
-        override fun onActivityResumed(activity: Activity?) {
-        }
+            override fun onActivityStopped(activity: Activity?) {
+                if (activity !is AppCompatActivity)
+                    return
 
-        override fun onActivityStarted(activity: Activity?) {
-            if (!enableAutoActivityTracking)
-                reportActivityStart(activity ?: return)
-        }
+                BloodHound.activity = activity
+                googleAnalyticsTracker?.reportActivityStop(activity)
+                firebaseAnalyticsTracker?.reportActivityStop(activity)
+            }
 
-        override fun onActivityDestroyed(activity: Activity?) {
-        }
+            override fun onActivityCreated(activity: Activity?, savedInstanceState: Bundle?) {
+                if (activity !is AppCompatActivity)
+                    return
 
-        override fun onActivitySaveInstanceState(activity: Activity?, outState: Bundle?) {
-        }
-
-        override fun onActivityStopped(activity: Activity?) {
-            if (!enableAutoActivityTracking)
-                reportActivityStop(activity ?: return)
-        }
-
-        override fun onActivityCreated(activity: Activity?, savedInstanceState: Bundle?) {
+                BloodHound.activity = activity
+            }
         }
     }
 
     // endregion
 
     /**
-     * https://developers.google.com/analytics/devguides/collection/android/v4/advanced#end-user-deletion
+     * https://firebase.google.com/docs/analytics/android/events
+     * @param screenName Screen Name
+     * @parame event see [FirebaseAnalytics.Event][com.google.firebase.analytics.FirebaseAnalytics.Event]
+     * @parame arguments see [FirebaseAnalytics.Event][com.google.firebase.analytics.FirebaseAnalytics.Param]
      */
-    fun deleteGoogleAnalyticsClientSideData() = context!!.deleteFile("gaClientId")
+    fun track(screenName: String, @Size(min = 1L, max = 40L) event: String, arguments: Map<String, String>? = null) {
 
-    // region tracking events
+        if (firebaseAnalyticsTracker != null)
+            firebaseAnalyticsTracker?.track(screenName, event, arguments)
+        else
+            Log.w(TAG, "[track] not tracking: initialize firebase tracker BloodHound#withFirebase")
+    }
 
     /**
-     * https://developers.google.com/analytics/devguides/collection/android/v4/
+     * https://developers.google.com/analyticsTracker/devguides/collection/android/v4/
      *
      * @param screenName
      * @param category
@@ -192,50 +133,36 @@ object BloodHound {
      * @param params
      */
     fun track(screenName: String, category: String, action: String, label: String, params: Map<String, String>? = null) {
-        ++sessionCounter
-        val tracker = event()
-                .screenName(screenName)
-                .category(category)
-                .action(action)
-                .label(label)
-
-        params?.forEach { (key, value) -> tracker.value(key, value) }
-
-        if (sessionCounter >= sessionLimit) {
-            tracker.setNewSession()
-            sessionCounter = 0
-        }
-        tracker.track()
-        log("[ $screenName | $category | $action | $label | $params ]")
+        if (googleAnalyticsTracker != null)
+            googleAnalyticsTracker?.track(screenName, category, action, label, params)
+        else
+            Log.w(TAG, "[track] not tracking: initialize google analytics tracker BloodHound#withGoogleAnalytics")
     }
 
-    // endregion
-
-    // region tracking screen
-
+    /**
+     * https://developers.google.com/analyticsTracker/devguides/collection/android/v4/
+     *
+     * @param screenName
+     */
     fun track(screenName: String) {
-        if (screenName == currentScreen)
-            return
-        currentScreen = screenName
-        ++sessionCounter
-        val tracker = screen(currentScreen)
-        if (sessionCounter >= sessionLimit) {
-            tracker.setNewSession()
-            sessionCounter = 0
-        }
-        tracker.track()
-        log(currentScreen)
+        firebaseAnalyticsTracker?.track(screenName)
+        googleAnalyticsTracker?.track(screenName)
+
+        if (firebaseAnalyticsTracker == null && googleAnalyticsTracker == null)
+            Log.w(TAG, "[track] not tracking: initialize tracker either BloodHound#withGoogleAnalytics and/or BloodHound#withFirebase ")
+    }
+
+    fun reset() {
+        googleAnalyticsTracker?.reset()
+        firebaseAnalyticsTracker?.reset()
     }
 
     // endregion
 
-    // region tracker
+    fun log(message: String?) {
+        if (enableDebugging)
+            Log.v(TAG, message)
+    }
 
-    private fun screen(screenName: String): ScreenTracker = ScreenTracker(tracker, screenName)
-
-    private fun event(): EventTracker = EventTracker(tracker)
-
-    private fun timing(): TimingTracker = TimingTracker(tracker)
-
-    // endregion
+    fun onTerminate() = context?.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
 }

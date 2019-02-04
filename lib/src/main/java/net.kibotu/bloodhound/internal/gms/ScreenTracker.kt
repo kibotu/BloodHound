@@ -2,7 +2,7 @@
  * Created by [Jan Rabe](https://about.me/janrabe)
  */
 
-package net.kibotu.bloodhound.internal
+package net.kibotu.bloodhound.internal.gms
 
 import com.google.android.gms.analytics.HitBuilders
 import com.google.android.gms.analytics.Tracker

@@ -130,8 +130,13 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation libs.kotlinJdk8
     implementation libs.supportAppCompat
-    implementation libs.playServicesGcm
-    implementation libs.playServicesAnalytics
+
+    // gms
+    compileOnly libs.playServicesGcm
+    compileOnly libs.playServicesAnalytics
+
+    // firebase
+    compileOnly libs.firebaseCore
 }
 
 // endregion

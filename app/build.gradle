@@ -31,9 +31,6 @@ android {
             minifyEnabled true
             shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            proguardFile 'proguard-net.kibotu.pro'
-            proguardFile 'proguard-retrolambda.pro'
-            proguardFile 'proguard-google-support.pro'
         }
     }
 
@@ -105,6 +102,13 @@ dependencies {
     implementation project(':lib')
     implementation libs.kotlinJdk8
     implementation libs.supportAppCompat
+
+    // either gms
+    implementation libs.playServicesGcm
+    implementation libs.playServicesAnalytics
+
+    // or firebase
+    implementation libs.firebaseCore
 }
 
 // region kapt
