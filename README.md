@@ -26,6 +26,14 @@ Tiny library for tracking screens and events with google analytics and / or fire
 
 #### Google Analytics
 
+0. Add gms version to manifest
+
+        <application>
+            <meta-data
+                android:name="com.google.android.gms.version"
+                android:value="@integer/google_play_services_version" />
+        </application>
+
 1. Initialize
     
         BloodHound.with(context, "trackingId")
