@@ -15,7 +15,7 @@ android {
     buildToolsVersion buildToolsVer
 
     defaultConfig {
-        applicationId "net.kibotu.bloodhound"
+        applicationId "net.kibotu.bloodhound.app"
         minSdkVersion minSdkVer
         targetSdkVersion targetSdkVer
         versionCode commitCount()
