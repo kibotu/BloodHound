@@ -132,11 +132,11 @@ dependencies {
     implementation libs.supportAppCompat
 
     // gms
-    compileOnly libs.playServicesGcm
-    compileOnly libs.playServicesAnalytics
+    implementation libs.playServicesGcm
+    implementation libs.playServicesAnalytics
 
     // firebase
-    compileOnly libs.firebaseCore
+    implementation libs.firebaseCore
 }
 
 // endregion
