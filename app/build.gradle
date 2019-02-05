@@ -1,3 +1,5 @@
+import java.security.spec.InvalidKeySpecException
+
 ext {
     isCi = true
 }
@@ -20,14 +22,40 @@ android {
         versionName simpleReleaseVersionName()
     }
 
+    signingConfigs {
+        try {
+            debug {
+                storeFile file(DEBUG_KEYSYORE_PATH)
+                storePassword DEBUG_STORE_PASSWORD
+                keyAlias DEBUG_KEYSTORE_ALLIAS
+                keyPassword DEBUG_KEY_PASSWORD
+            }
+        }
+        catch (final ignored) {
+            throw new InvalidKeySpecException('You should define DEBUG_KEYSTORE_ALLIAS, DEBUG_STORE_PASSWORD, DEBUG_KEY_PASSWORD in gradle.properties.')
+        }
+        try {
+            release {
+                storeFile file(RELEASE_KEYSYORE_PATH)
+                storePassword RELEASE_STORE_PASSWORD
+                keyAlias RELEASE_KEYSTORE_ALIAS
+                keyPassword RELEASE_KEY_PASSWORD
+            }
+        } catch (final ignored) {
+            throw new InvalidKeySpecException('You should define RELEASE_KEYSTORE_ALIAS, RELEASE_STORE_PASSWORD, RELEASE_KEY_PASSWORD in gradle.properties.')
+        }
+    }
+
     buildTypes {
         debug {
+            signingConfig signingConfigs.debug
             pseudoLocalesEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             minifyEnabled false
             shrinkResources = false
         }
         release {
+            signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
