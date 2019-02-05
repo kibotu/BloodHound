@@ -30,6 +30,7 @@ android {
             minifyEnabled false
             shrinkResources = false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFile 'proguard-net.kibotu.pro'
         }
         release {
             debuggable false
@@ -37,8 +38,6 @@ android {
             shrinkResources = false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             proguardFile 'proguard-net.kibotu.pro'
-            proguardFile 'proguard-retrolambda.pro'
-            proguardFile 'proguard-google-support.pro'
         }
     }
 
@@ -132,11 +131,11 @@ dependencies {
     implementation libs.supportAppCompat
 
     // gms
-    implementation libs.playServicesGcm
-    implementation libs.playServicesAnalytics
+    compileOnly libs.playServicesGcm
+    compileOnly libs.playServicesAnalytics
 
     // firebase
-    implementation libs.firebaseCore
+    compileOnly libs.firebaseCore
 }
 
 // endregion
