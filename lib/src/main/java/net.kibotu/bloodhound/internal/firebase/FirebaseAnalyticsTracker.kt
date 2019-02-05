@@ -35,10 +35,17 @@ internal class FirebaseAnalyticsTracker : AnalyticsTracker {
     override fun reset() {
     }
 
-    fun track(screenName: String, @Size(min = 1L, max = 40L) event: String? = null, arguments: Map<String, String>? = null) {
-        analytics.setCurrentScreen(BloodHound.activity ?: return, screenName, null)
+    var currentScreen: String = ""
+    var currentScreenClass: String = ""
+
+    fun track(screenName: String, screenClass: String? = null) {
+        currentScreen = screenName
+        currentScreenClass = screenClass ?: screenName
+        analytics.setCurrentScreen(BloodHound.activity ?: return, screenName, currentScreenClass)
+    }
+
+    fun track(@Size(min = 1L, max = 40L) event: String? = null, arguments: Map<String, String>? = null) {
         analytics.logEvent(event ?: FirebaseAnalytics.Event.VIEW_ITEM, arguments?.toBundle() ?: Bundle())
-        BloodHound.log("[ $screenName | ${event ?: FirebaseAnalytics.Event.VIEW_ITEM} | ${arguments ?: "no arguments"} ]")
     }
 
     private fun configure(options: FirebaseOptions?) {

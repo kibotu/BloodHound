@@ -40,11 +40,11 @@ Tiny library for tracking screens and events with google analytics and / or fire
 
 2. Track Screens
 
-        BloodHound.track("screen")
+        BloodHound.screen("main_screen")
 
 3. Track Events
 
-       BloodHound.track("main_screen", "category", "action", "app_start",
+       BloodHound.track("category", "action", "app_start",
             mapOf("user" to UUID.randomUUID().toString()) // (optional) parameters
        )
 
@@ -60,7 +60,10 @@ Tiny library for tracking screens and events with google analytics and / or fire
 
 2. Track Screens
 
-        BloodHound.track("screen")
+        BloodHound.screen("main_screen")
+
+        // with screen class
+        // BloodHound.screen("main_screen", MainActivity::class.java.simpleName)
 
 3. Track Events
 
@@ -71,13 +74,12 @@ Tiny library for tracking screens and events with google analytics and / or fire
 4. (optional) Reset client
 
     	BloodHound.reset()
-
     
 ### GoogleAnalyitcsOptions (defaults)
     
     BloodHound.with(this, "trackingId", GoogleAnalyitcsOptions(
-        enableDebugging = BuildConfig.DEBUG,
-        enableLogging = BuildConfig.DEBUG,
+        enableDebugging = false,
+        enableLogging = false,
         exceptionReporting = false,
         advertisingIdCollection = true,
         autoActivityTracking = false,
@@ -91,8 +93,8 @@ Tiny library for tracking screens and events with google analytics and / or fire
 ### FirebaseOptions (defaults)
 
     BloodHound.with(this, FirebaseOptions(
-        enableDebugging = BuildConfig.DEBUG,
-        enableLogging = BuildConfig.DEBUG
+        enableDebugging = false,
+        enableLogging = false
     ))
             
 ### License

@@ -5,6 +5,6 @@
 package net.kibotu.bloodhound.internal.firebase
 
 data class FirebaseOptions(
-        var enableDebugging: Boolean = true,
-        var enableLogging: Boolean = true
+        var enableDebugging: Boolean = false,
+        var enableLogging: Boolean = false
 )

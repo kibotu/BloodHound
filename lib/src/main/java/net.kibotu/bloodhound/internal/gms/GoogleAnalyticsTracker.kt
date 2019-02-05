@@ -129,10 +129,10 @@ internal class GoogleAnalyticsTracker private constructor() : AnalyticsTracker {
      * @param label
      * @param params
      */
-    fun track(screenName: String, category: String, action: String, label: String, params: Map<String, String>? = null) {
+    fun track(category: String, action: String, label: String, params: Map<String, String>? = null) {
         ++sessionCounter
         val tracker = event()
-                .screenName(screenName)
+                .screenName(currentScreen)
                 .category(category)
                 .action(action)
                 .label(label)
@@ -144,7 +144,7 @@ internal class GoogleAnalyticsTracker private constructor() : AnalyticsTracker {
             sessionCounter = 0
         }
         tracker.track()
-        BloodHound.log("[ $screenName | $category | $action | $label | $params ]")
+        BloodHound.log("[ $currentScreen | $category | $action | $label | $params ]")
     }
 
     // endregion

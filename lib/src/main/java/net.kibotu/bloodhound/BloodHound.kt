@@ -111,14 +111,13 @@ object BloodHound {
 
     /**
      * https://firebase.google.com/docs/analytics/android/events
-     * @param screenName Screen Name
+     *
      * @parame event see [FirebaseAnalytics.Event][com.google.firebase.analytics.FirebaseAnalytics.Event]
      * @parame arguments see [FirebaseAnalytics.Event][com.google.firebase.analytics.FirebaseAnalytics.Param]
      */
-    fun track(screenName: String, @Size(min = 1L, max = 40L) event: String, arguments: Map<String, String>? = null) {
-
+    fun track(@Size(min = 1L, max = 40L) event: String, arguments: Map<String, String>? = null) {
         if (firebaseAnalyticsTracker != null)
-            firebaseAnalyticsTracker?.track(screenName, event, arguments)
+            firebaseAnalyticsTracker?.track(event, arguments)
         else
             Log.w(TAG, "[track] not tracking: initialize firebase tracker BloodHound#withFirebase")
     }
@@ -132,9 +131,9 @@ object BloodHound {
      * @param label
      * @param params
      */
-    fun track(screenName: String, category: String, action: String, label: String, params: Map<String, String>? = null) {
+    fun track(category: String, action: String, label: String, params: Map<String, String>? = null) {
         if (googleAnalyticsTracker != null)
-            googleAnalyticsTracker?.track(screenName, category, action, label, params)
+            googleAnalyticsTracker?.track( category, action, label, params)
         else
             Log.w(TAG, "[track] not tracking: initialize google analytics tracker BloodHound#withGoogleAnalytics")
     }
@@ -144,8 +143,8 @@ object BloodHound {
      *
      * @param screenName
      */
-    fun track(screenName: String) {
-        firebaseAnalyticsTracker?.track(screenName)
+    fun screen(screenName: String, screenClass: String? = null) {
+        firebaseAnalyticsTracker?.track(screenName, screenClass)
         googleAnalyticsTracker?.track(screenName)
 
         if (firebaseAnalyticsTracker == null && googleAnalyticsTracker == null)
